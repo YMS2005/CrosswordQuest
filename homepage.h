@@ -111,17 +111,16 @@ private:
     QWidget*     buildMainContent();
     QWidget*     buildBottomStats();
     QWidget*     buildStartGameCard();
-    QWidget*     buildDailyQuestCard();
+    QWidget*     buildGameResultCard();
     QWidget*     buildSmallCard(const QString& icon,
-                                const QString& title,
-                                const QString& desc);
+                            const QString& title,
+                            const QString& desc);
 
     // Helpers
     QLabel*      makeNavTab(const QString& text, bool active);
     QWidget*     makeIconChip(const QString& icon, const QString& text);
     QPushButton* makeNavBtn(const QString& icon, const QString& label, bool active);
-    QLabel*      makeStatLabel(const QString& text);
-    QLabel*      makeStatValue(const QString& text, const QString& color);
+
 
     // Convenience font factories
     static QFont segoe(int pt, bool bold = false) {

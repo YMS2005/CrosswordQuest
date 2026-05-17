@@ -1,12 +1,10 @@
 #include "Homepage.h"
 
 // ══════════════════════════════════════════════════════════════
-//  Global stylesheet — applied to the whole window.
-//  Children inherit and can override via objectName selectors.
+//  Global stylesheet
 // ══════════════════════════════════════════════════════════════
 static const char* GLOBAL_QSS = R"(
 
-    /* Base */
     QWidget {
         font-family: 'Segoe UI';
         font-size: 12pt;
@@ -14,49 +12,36 @@ static const char* GLOBAL_QSS = R"(
         background: transparent;
     }
 
-    /* Top bar */
     #topBar {
         background: #FFFFFF;
         border-bottom: 1px solid #E4E7F0;
     }
 
-    /* Left nav */
     #leftNav {
         background: #FFFFFF;
         border-right: 1px solid #E4E7F0;
     }
 
-    /* Main content area */
     #mainContent { background: #F8F9FC; }
 
-    /* Bottom stats bar */
-    #bottomBar {
-        background: #FFFFFF;
-        border-top: 1px solid #3C6291;
-    }
-
-    /* White cards (Daily Quest, small cards) */
     #whiteCard {
         background: #FFFFFF;
         border: 1px solid #3C6291;
         border-radius: 12px;
     }
 
-    /* Start Game hero card */
     #startCard {
         background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #3C6291, stop:1 #4D71A1FF);
+                    stop:0 #3C6291, stop:1 #4D71A1);
         border-radius: 12px;
     }
 
-    /* Timer / coin chips */
     #chip {
         background: #F8F9FC;
         border: 1px solid #E4E7F0;
         border-radius: 14px;
     }
 
-    /* Upgrade button */
     QPushButton#upgradeBtn {
         background: #3C6291;
         color: white;
@@ -68,7 +53,6 @@ static const char* GLOBAL_QSS = R"(
     }
     QPushButton#upgradeBtn:hover { background: #1D3CB4; }
 
-    /* Nav buttons */
     QPushButton#navBtn {
         background: transparent;
         border: none;
@@ -78,9 +62,8 @@ static const char* GLOBAL_QSS = R"(
         text-align: left;
         padding-left: 10px;
     }
-    QPushButton#navBtn:hover { background: #EEF1FB; color: #4d71a1; }
+    QPushButton#navBtn:hover { background: #EEF1FB; color: #4D71A1; }
 
-    /* Check Progress link */
     QPushButton#progressBtn {
         background: transparent;
         border: none;
@@ -108,10 +91,10 @@ Homepage::Homepage(QWidget* parent) : QWidget(parent)
     root->setContentsMargins(0, 0, 0, 0);
     root->setSpacing(0);
 
-    // Top bar
+    // Top bar (nav tabs + stats strip)
     root->addWidget(buildTopBar());
 
-    // Middle row: left nav + main content
+    // Middle: left nav + main content
     QHBoxLayout* middle = new QHBoxLayout();
     middle->setContentsMargins(0, 0, 0, 0);
     middle->setSpacing(0);
@@ -123,62 +106,81 @@ Homepage::Homepage(QWidget* parent) : QWidget(parent)
     middleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     root->addWidget(middleWidget, 1);
 
-    // Bottom stats bar
-    root->addWidget(buildBottomStats());
+    // No bottom bar — stats are now in the top bar
 }
 
 // ══════════════════════════════════════════════════════════════
-//  TOP BAR
+//  TOP BAR  (nav row + stats strip)
 // ══════════════════════════════════════════════════════════════
 QWidget* Homepage::buildTopBar()
 {
     QWidget* bar = new QWidget();
     bar->setObjectName("topBar");
-    bar->setFixedHeight(52);
 
-    QHBoxLayout* lay = new QHBoxLayout(bar);
-    lay->setContentsMargins(18, 0, 18, 0);
-    lay->setSpacing(0);
+    QVBoxLayout* vlay = new QVBoxLayout(bar);
+    vlay->setContentsMargins(0, 0, 0, 0);
+    vlay->setSpacing(0);
 
-    // Logo icon — MDL2 glyph in a blue rounded square
-    QLabel* logoIcon = new QLabel(QString::fromUtf8(ICO_GRID));
-    logoIcon->setFont(mdl2(13));
-    logoIcon->setFixedSize(30, 30);
-    logoIcon->setAlignment(Qt::AlignCenter);
-    logoIcon->setStyleSheet("background:#3C6291; color:white; border-radius:6px;");
+    // ── Row 1: Nav tabs ──────────────────────────────────────
+    QWidget* navRow = new QWidget();
+    navRow->setFixedHeight(52);
+    navRow->setStyleSheet("background:transparent;");
 
-    // Logo text
-    QLabel* logoText = new QLabel("CrossWordQuest");
-    logoText->setFont(segoe(11, true));
-    logoText->setStyleSheet("color:#1C1E2E;");
+    QHBoxLayout* navLay = new QHBoxLayout(navRow);
+    navLay->setContentsMargins(18, 0, 18, 0);
+    navLay->setSpacing(4);
 
-    // Nav tabs
-    QLabel* tabLevels      = makeNavTab("Levels",      true);
-    QLabel* tabLeaderboard = makeNavTab("Leaderboard", false);
-    QLabel* tabSettings    = makeNavTab("Settings",    false);
+    QLabel* tabLevels = makeNavTab("Levels", true);
+    navLay->addSpacing(20);
+    navLay->addWidget(tabLevels);
+    navLay->addStretch();
 
-    // Chips
-    QWidget* timerChip = makeIconChip(ICO_CLOCK, "50:46");
-    QWidget* coinChip  = makeIconChip(ICO_STAR,  "1,250");
+    // ── Row 2: Stats strip ───────────────────────────────────
+    QWidget* statsRow = new QWidget();
+    statsRow->setFixedHeight(48);
+    statsRow->setStyleSheet(
+        "background:#F0F4FA;"
+        "border-top: 1px solid #E4E7F0;"
+        "border-bottom: 1px solid #E4E7F0;");
 
-    // Avatar circle
-    //AvatarWidget* avatar = new AvatarWidget();
+    QHBoxLayout* statsLay = new QHBoxLayout(statsRow);
+    statsLay->setContentsMargins(38, 0, 38, 0);
+    statsLay->setSpacing(0);
 
-    lay->addWidget(logoIcon);
-    lay->addSpacing(8);
-    lay->addWidget(logoText);
-    lay->addSpacing(40);
-    lay->addWidget(tabLevels);
-    lay->addSpacing(4);
-    lay->addWidget(tabLeaderboard);
-    lay->addSpacing(4);
-    lay->addWidget(tabSettings);
-    lay->addStretch();
-    lay->addWidget(timerChip);
-    lay->addSpacing(8);
-    lay->addWidget(coinChip);
-    lay->addSpacing(14);
-    //lay->addWidget(avatar);
+    auto addStat = [&](const QString& label,
+                       const QString& value,
+                       const QString& color)
+    {
+        QWidget* cell = new QWidget();
+        cell->setStyleSheet("background:transparent;");
+
+        QHBoxLayout* cellLay = new QHBoxLayout(cell);
+        cellLay->setContentsMargins(0, 0, 0, 0);
+        cellLay->setSpacing(8);
+
+        QLabel* lbl = new QLabel(label);
+        lbl->setFont(segoe(8, true));
+        lbl->setStyleSheet(QString("color:%1; letter-spacing:0.5px;"
+                                   "background:transparent;").arg(C_TEXT_MUTED));
+
+        QLabel* val = new QLabel(value);
+        val->setFont(QFont("Segoe UI", 11, QFont::Bold));
+        val->setStyleSheet(QString("color:%1; background:transparent;").arg(color));
+
+        cellLay->addWidget(lbl);
+        cellLay->addWidget(val);
+
+        statsLay->addWidget(cell);
+        statsLay->addStretch();
+    };
+
+    statsLay->addStretch();
+    addStat("GLOBAL RANK",  "#1,204",  C_RANK_BLUE);
+    addStat("WORDS SOLVED", "14.2k",   C_GREEN);
+    addStat("WIN STREAK",   "12 Days", C_ORANGE);
+
+    vlay->addWidget(navRow);
+    vlay->addWidget(statsRow);
 
     return bar;
 }
@@ -187,10 +189,11 @@ QLabel* Homepage::makeNavTab(const QString& text, bool active)
 {
     QLabel* lbl = new QLabel(text);
     lbl->setFont(segoe(10, active));
+    lbl->setAlignment(Qt::AlignCenter);
     lbl->setCursor(Qt::PointingHandCursor);
     lbl->setContentsMargins(14, 16, 14, 16);
     lbl->setStyleSheet(active
-                           ? "color:#4d71a1; border-bottom:3px solid #4d71a1;"
+                           ? "color:#4D71A1; border-bottom:3px solid #4D71A1;"
                            : "color:#7B82A3;");
     return lbl;
 }
@@ -207,7 +210,7 @@ QWidget* Homepage::makeIconChip(const QString& icon, const QString& text)
 
     QLabel* ico = new QLabel(QString::fromUtf8(icon.toUtf8()));
     ico->setFont(mdl2(10));
-    ico->setStyleSheet("color:#4d71a1;");
+    ico->setStyleSheet("color:#4D71A1;");
 
     QLabel* lbl = new QLabel(text);
     lbl->setFont(segoe(9, true));
@@ -231,45 +234,17 @@ QWidget* Homepage::buildLeftNav()
     lay->setContentsMargins(16, 18, 16, 16);
     lay->setSpacing(2);
 
-    // Player info
-    QLabel* name = new QLabel("Pro Solver");
-    name->setFont(segoe(10, true));
-    name->setStyleSheet("color:#4d71a1;");
-
-    QLabel* level = new QLabel(QString::fromUtf8("Level 43  \u00B7  Grandmaster"));
-    level->setFont(segoe(9));
-    level->setStyleSheet("color:#7B82A3;");
-
     QFrame* divider = new QFrame();
     divider->setFrameShape(QFrame::HLine);
     divider->setStyleSheet("color:#E4E7F0;");
 
-    lay->addWidget(name);
-    lay->addWidget(level);
     lay->addSpacing(8);
     lay->addWidget(divider);
     lay->addSpacing(6);
 
-    // Nav items
-    lay->addWidget(makeNavBtn(ICO_HOME,     "Home",            true));
-    lay->addWidget(makeNavBtn(ICO_PUZZLE,   "Puzzles",         false));
-    lay->addWidget(makeNavBtn(ICO_CALENDAR, "Daily Challenge", false));
-    lay->addWidget(makeNavBtn(ICO_TROPHY,   "Achievements",    false));
-    lay->addWidget(makeNavBtn(ICO_SHOP,     "Store",           false));
-
-    lay->addSpacing(16);
-
-    // Upgrade button
-    QPushButton* upgrade = new QPushButton("Upgrade to Premium");
-    upgrade->setObjectName("upgradeBtn");
-    upgrade->setFixedHeight(38);
-    upgrade->setCursor(Qt::PointingHandCursor);
-    lay->addWidget(upgrade);
+    lay->addWidget(makeNavBtn(ICO_HOME, "Home", true));
 
     lay->addStretch();
-
-    lay->addWidget(makeNavBtn(ICO_HELP, "Help", false));
-    lay->addWidget(makeNavBtn(ICO_EXIT, "Exit", false));
 
     return nav;
 }
@@ -285,19 +260,16 @@ QPushButton* Homepage::makeNavBtn(const QString& icon,
     btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     btn->setFlat(true);
 
-    // Layout two labels inside the button
     QHBoxLayout* lay = new QHBoxLayout(btn);
     lay->setContentsMargins(10, 0, 10, 0);
     lay->setSpacing(8);
 
-    // MDL2 icon label
     QLabel* ico = new QLabel(QString::fromUtf8(icon.toUtf8()));
     ico->setFont(mdl2(13));
     ico->setFixedWidth(20);
     ico->setAlignment(Qt::AlignCenter);
     ico->setAttribute(Qt::WA_TransparentForMouseEvents);
 
-    // Text label
     QLabel* lbl = new QLabel(label);
     lbl->setFont(segoe(10, active));
     lbl->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -310,8 +282,8 @@ QPushButton* Homepage::makeNavBtn(const QString& icon,
         btn->setStyleSheet(
             "QPushButton { background:#EEF1FB; border-radius:8px; border:none; }"
             "QPushButton:hover { background:#DDE3F8; }");
-        ico->setStyleSheet("color:#4d71a1;");
-        lbl->setStyleSheet("color:#4d71a1; font-weight:bold;");
+        ico->setStyleSheet("color:#4D71A1;");
+        lbl->setStyleSheet("color:#4D71A1; font-weight:bold;");
     } else {
         btn->setStyleSheet(
             "QPushButton { background:transparent; border-radius:8px; border:none; }"
@@ -335,51 +307,40 @@ QWidget* Homepage::buildMainContent()
     lay->setContentsMargins(32, 28, 32, 20);
     lay->setSpacing(0);
 
-    // // Badge
-    // QLabel* badge = new QLabel("ACADEMIC EXCELLENCE");
-    // badge->setFont(segoe(8, true));
-    // badge->setStyleSheet("color:#4d71a1; letter-spacing:1px;");
-    // lay->addWidget(badge);
-    // lay->addSpacing(8);
-
     // Welcome heading
     QLabel* welcome = new QLabel("Welcome");
-    QLabel* Player = new QLabel("Player");
-    Player->setStyleSheet("color:#3C6291; font-size: 32pt; font-weight:bold;");
-    welcome->setStyleSheet("color:#1C1E2E; font-size: 32pt;");
+    welcome->setStyleSheet("color:#1C1E2E; font-size:32pt;");
+
+    QLabel* player = new QLabel("Player");
+    player->setStyleSheet("color:#3C6291; font-size:32pt; font-weight:bold;");
+
     lay->addWidget(welcome);
-    lay->addWidget(Player);
+    lay->addWidget(player);
     lay->addSpacing(6);
 
     // Subtitle
     QLabel* subtitle = new QLabel(
         "Sharpen your mind and expand your vocabulary with today's\n"
         "hand-picked editorial challenges.");
-    subtitle->setFont(segoe(10));
-    subtitle->setStyleSheet("color:#7B82A3;");
+    subtitle->setStyleSheet("color:#7B82A3; font-size:10pt;");
     lay->addWidget(subtitle);
     lay->addSpacing(20);
 
-    // Hero row: Start Game + Daily Quest
+    // Hero row: Start Game + Game Result
     QHBoxLayout* heroRow = new QHBoxLayout();
     heroRow->setSpacing(16);
     heroRow->addWidget(buildStartGameCard(), 2);
-    heroRow->addWidget(buildDailyQuestCard(), 1);
+    heroRow->addWidget(buildGameResultCard(), 1);
     lay->addLayout(heroRow);
     lay->addSpacing(20);
 
-    // Small cards row
+    // Exit card only
     QHBoxLayout* cardRow = new QHBoxLayout();
-    cardRow->setSpacing(16);
-    cardRow->addWidget(buildSmallCard(ICO_BOOK,
-                                      "Instructions",
-                                      "Learn the rules of the quest and\nmaster advanced word finding."));
-    cardRow->addWidget(buildSmallCard(ICO_INFO,
-                                      "About",
-                                      "Discover the story behind\nCrossWord Quest."));
+    cardRow->setSpacing(8);
     cardRow->addWidget(buildSmallCard(ICO_CLOSE,
                                       "Exit",
                                       "Safely close the application and\nsave your current progress."));
+    cardRow->addStretch();
     lay->addLayout(cardRow);
 
     lay->addStretch();
@@ -397,17 +358,14 @@ QWidget* Homepage::buildStartGameCard()
     lay->setContentsMargins(30, 30, 20, 30);
     lay->setSpacing(0);
 
-    // Text
     QVBoxLayout* textCol = new QVBoxLayout();
     textCol->setSpacing(8);
 
     QLabel* title = new QLabel("Start Game");
-    title->setFont(QFont("Segoe UI", 22, QFont::Bold));
-    title->setStyleSheet("color:white;");
+    title->setStyleSheet("color:white; font-size:22pt; font-weight:bold;");
 
     QLabel* sub = new QLabel("Resume where you left off at Level 42");
-    sub->setFont(segoe(10));
-    sub->setStyleSheet("color:rgba(210,220,255,220);");
+    sub->setStyleSheet("color:rgba(210,220,255,220); font-size:10pt;");
 
     textCol->addWidget(title);
     textCol->addWidget(sub);
@@ -416,7 +374,6 @@ QWidget* Homepage::buildStartGameCard()
     lay->addLayout(textCol, 1);
     lay->addStretch();
 
-    // Play button (owner-drawn circle with MDL2 play icon)
     PlayButton* play = new PlayButton(card);
     connect(play, &QPushButton::clicked, this, &Homepage::onStartGame);
     lay->addWidget(play);
@@ -424,7 +381,7 @@ QWidget* Homepage::buildStartGameCard()
     return card;
 }
 
-QWidget* Homepage::buildDailyQuestCard()
+QWidget* Homepage::buildGameResultCard()
 {
     QWidget* card = new QWidget();
     card->setObjectName("whiteCard");
@@ -438,32 +395,30 @@ QWidget* Homepage::buildDailyQuestCard()
     QHBoxLayout* titleRow = new QHBoxLayout();
     titleRow->setSpacing(10);
 
-    QLabel* ico = new QLabel(QString::fromUtf8(ICO_CALENDAR));
+    QLabel* ico = new QLabel(QString::fromUtf8(ICO_TROPHY));
     ico->setFont(mdl2(15));
     ico->setFixedSize(32, 32);
     ico->setAlignment(Qt::AlignCenter);
-    ico->setStyleSheet("background:#EEF1FB; color:#4d71a1; border-radius:6px;");
+    ico->setStyleSheet("background:#EEF1FB; color:#4D71A1; border-radius:6px;");
 
-    QLabel* title = new QLabel("Daily Quest");
-    title->setFont(segoe(12, true));
-    title->setStyleSheet("color:#1C1E2E;");
+    QLabel* title = new QLabel("Game Result");
+    title->setStyleSheet("color:#1C1E2E; font-size:12pt; font-weight:bold;");
 
     titleRow->addWidget(ico);
     titleRow->addWidget(title);
     titleRow->addStretch();
     lay->addLayout(titleRow);
 
-    QLabel* desc = new QLabel("A fresh puzzle every\nmorning.");
-    desc->setFont(segoe(10));
-    desc->setStyleSheet("color:#7B82A3;");
+    QLabel* desc = new QLabel("Your last session\nresults are here.");
+    desc->setStyleSheet("color:#7B82A3; font-size:10pt;");
     lay->addWidget(desc);
 
     lay->addStretch();
 
-    QPushButton* prog = new QPushButton("Check Progress  >");
-    prog->setObjectName("progressBtn");
-    prog->setCursor(Qt::PointingHandCursor);
-    lay->addWidget(prog);
+    QPushButton* btn = new QPushButton("View Results  >");
+    btn->setObjectName("progressBtn");
+    btn->setCursor(Qt::PointingHandCursor);
+    lay->addWidget(btn);
 
     return card;
 }
@@ -481,24 +436,20 @@ QWidget* Homepage::buildSmallCard(const QString& icon,
     outer->setContentsMargins(16, 14, 16, 14);
     outer->setSpacing(12);
 
-    // Icon box
     QLabel* ico = new QLabel(QString::fromUtf8(icon.toUtf8()));
     ico->setFont(mdl2(14));
     ico->setFixedSize(36, 36);
     ico->setAlignment(Qt::AlignCenter);
-    ico->setStyleSheet("background:#EEF1FB; color:#4d71a1; border-radius:8px;");
+    ico->setStyleSheet("background:#EEF1FB; color:#4D71A1; border-radius:8px;");
 
-    // Text
     QVBoxLayout* textCol = new QVBoxLayout();
     textCol->setSpacing(4);
 
     QLabel* ttl = new QLabel(title);
-    ttl->setFont(segoe(10, true));
-    ttl->setStyleSheet("color:#1C1E2E;");
+    ttl->setStyleSheet("color:#1C1E2E; font-size:10pt; font-weight:bold;");
 
     QLabel* dsc = new QLabel(desc);
-    dsc->setFont(segoe(9));
-    dsc->setStyleSheet("color:#7B82A3;");
+    dsc->setStyleSheet("color:#7B82A3; font-size:9pt;");
     dsc->setWordWrap(true);
 
     textCol->addWidget(ttl);
@@ -509,56 +460,6 @@ QWidget* Homepage::buildSmallCard(const QString& icon,
     outer->addLayout(textCol, 1);
 
     return card;
-}
-
-// ══════════════════════════════════════════════════════════════
-//  BOTTOM STATS BAR
-// ══════════════════════════════════════════════════════════════
-QWidget* Homepage::buildBottomStats()
-{
-    QWidget* bar = new QWidget();
-    bar->setObjectName("bottomBar");
-    bar->setFixedHeight(72);
-
-    QHBoxLayout* lay = new QHBoxLayout(bar);
-    lay->setContentsMargins(60, 0, 60, 0);
-    lay->setSpacing(0);
-
-    auto addStat = [&](const QString& label,
-                       const QString& value,
-                       const QString& color)
-    {
-        QVBoxLayout* col = new QVBoxLayout();
-        col->setSpacing(2);
-        col->setAlignment(Qt::AlignVCenter);
-        col->addWidget(makeStatLabel(label));
-        col->addWidget(makeStatValue(value, color));
-        lay->addStretch();
-        lay->addLayout(col);
-    };
-
-    addStat("GLOBAL RANK",  "#1,204",  C_RANK_BLUE);
-    addStat("WORDS SOLVED", "14.2k",   C_GREEN);
-    addStat("WIN STREAK",   "12 Days", C_ORANGE);
-    lay->addStretch();
-
-    return bar;
-}
-
-QLabel* Homepage::makeStatLabel(const QString& text)
-{
-    QLabel* l = new QLabel(text);
-    l->setFont(segoe(8, true));
-    l->setStyleSheet(QString("color:%1; letter-spacing:0.5px;").arg(C_TEXT_MUTED));
-    return l;
-}
-
-QLabel* Homepage::makeStatValue(const QString& text, const QString& color)
-{
-    QLabel* l = new QLabel(text);
-    l->setFont(QFont("Segoe UI", 17, QFont::Bold));
-    l->setStyleSheet(QString("color:%1;").arg(color));
-    return l;
 }
 
 // ══════════════════════════════════════════════════════════════
